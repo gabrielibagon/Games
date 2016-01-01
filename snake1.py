@@ -1,4 +1,4 @@
-# snake3.py
+# snake8.py
 
 import random
 from Tkinter import *
@@ -9,6 +9,7 @@ def mousePressed(event):
 
 def keyPressed(event):
     canvas = event.widget.canvas
+    canvas.data["ignoreNextTimerEvent"] = True # for better timing
     # first process keys that work even if the game is over
     if (event.char == "q"):
         gameOver(canvas)
@@ -30,13 +31,13 @@ def keyPressed(event):
 
 def moveSnake(canvas, drow, dcol):
     # move the snake one step forward in the given direction.
+    canvas.data["snakeDrow"] = drow # store direction for next timer event
+    canvas.data["snakeDcol"] = dcol
     snakeBoard = canvas.data["snakeBoard"]
     rows = len(snakeBoard)
     cols = len(snakeBoard[0])
     headRow = canvas.data["headRow"]
     headCol = canvas.data["headCol"]
-    snakeDrow = canvas.data["snakeDrow"]
-    snakeDcol = canvas.data["snakeDcol"]
     newHeadRow = headRow + drow
     newHeadCol = headCol + dcol
     if ((newHeadRow < 0) or (newHeadRow >= rows) or
@@ -46,12 +47,14 @@ def moveSnake(canvas, drow, dcol):
     elif (snakeBoard[newHeadRow][newHeadCol] > 0):
         # snake ran into itself!
         gameOver(canvas)
-    elif (snakeBoard[newHeadRow][newHeadCol] == -1):
+    elif (snakeBoard[newHeadRow][newHeadCol] < 0):
+        # eating food!  Yum!
         snakeBoard[newHeadRow][newHeadCol] = 1 + snakeBoard[headRow][headCol];
         canvas.data["headRow"] = newHeadRow
         canvas.data["headCol"] = newHeadCol
         placeFood(canvas)
     else:
+        # normal move forward (not eating food)
         snakeBoard[newHeadRow][newHeadCol] = 1 + snakeBoard[headRow][headCol];
         canvas.data["headRow"] = newHeadRow
         canvas.data["headCol"] = newHeadCol
@@ -73,19 +76,27 @@ def gameOver(canvas):
     canvas.data["isGameOver"] = True
 
 def timerFired(canvas):
-    if (canvas.data["isGameOver"] == False):
+    ignoreThisTimerEvent = canvas.data["ignoreNextTimerEvent"]
+    canvas.data["ignoreNextTimerEvent"] = False
+    if ((canvas.data["isGameOver"] == False) and
+        (ignoreThisTimerEvent == False)):
         # only process timerFired if game is not over
+        drow = canvas.data["snakeDrow"]
+        dcol = canvas.data["snakeDcol"]
+        moveSnake(canvas, drow, dcol)
         redrawAll(canvas)
     # whether or not game is over, call next timerFired
     # (or we'll never call timerFired again!)
-    delay = 250 # milliseconds
+    delay = 150 # milliseconds
     canvas.after(delay, timerFired, canvas) # pause, then call timerFired again
 
 def redrawAll(canvas):
     canvas.delete(ALL)
     drawSnakeBoard(canvas)
     if (canvas.data["isGameOver"] == True):
-        canvas.create_text(155, 155, text="Game Over!", font=("Helvetica", 32, "bold"))
+        cx = canvas.data["canvasWidth"]/2
+        cy = canvas.data["canvasHeight"]/2
+        canvas.create_text(cx, cy, text="Game Over!", fill="white", font=("Helvetica", 32, "bold"))
 
 def drawSnakeBoard(canvas):
     snakeBoard = canvas.data["snakeBoard"]
@@ -96,38 +107,47 @@ def drawSnakeBoard(canvas):
             drawSnakeCell(canvas, snakeBoard, row, col)
 
 def drawSnakeCell(canvas, snakeBoard, row, col):
-    margin = 5
-    cellSize = 30
+    margin = canvas.data["margin"]
+    cellSize = canvas.data["cellSize"]
     left = margin + col * cellSize
     right = left + cellSize
     top = margin + row * cellSize
     bottom = top + cellSize
-    canvas.create_rectangle(left, top, right, bottom, fill="white")
+    canvas.create_rectangle(left, top, right, bottom, fill="black")
     if (snakeBoard[row][col] > 0):
         # draw part of the snake body
-        canvas.create_oval(left, top, right, bottom, fill="blue")
-    # for debugging, draw the number in the cell
+        canvas.create_rectangle(left, top, right, bottom, fill="white")
     elif (snakeBoard[row][col] < 0):
-        canvas.create_oval(left,top,right,bottom, fill="green")
+        # draw food
+        canvas.create_rectangle(left, top, right, bottom, fill="green")
+    # for debugging, draw the number in the cell
     if (canvas.data["inDebugMode"] == True):
         canvas.create_text(left+cellSize/2,top+cellSize/2,
-                           text=str(snakeBoard[row][col]),font=("Helvatica", 14, "bold"))
+                           text=str(snakeBoard[row][col]),font=("Helvatica",14, "bold"))
 
 def loadSnakeBoard(canvas):
-    snakeBoard = [ [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 4, 5, 6, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 3, 0, 7, 0, 0, 0 ],
-                   [ 0, 0, 0, 1, 2, 0, 8, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 0, 0, 9, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-                ]
+    rows = canvas.data["rows"]
+    cols = canvas.data["cols"]
+    snakeBoard = [ ]
+    for row in range(rows): snakeBoard += [[0] * cols]
+    snakeBoard[rows/2][cols/2] = 1
     canvas.data["snakeBoard"] = snakeBoard
     findSnakeHead(canvas)
     placeFood(canvas)
+
+def placeFood(canvas):
+    # place food (-1) in a random location on the snakeBoard, but
+    # keep picking random locations until we find one that is not
+    # part of the snake!
+    snakeBoard = canvas.data["snakeBoard"]
+    rows = len(snakeBoard)
+    cols = len(snakeBoard[0])
+    while True:
+        row = random.randint(0,rows-1)
+        col = random.randint(0,cols-1)
+        if (snakeBoard[row][col] == 0):
+            break
+    snakeBoard[row][col] = -1
 
 def findSnakeHead(canvas):
     # find where snakeBoard[row][col] is largest, and
@@ -145,17 +165,6 @@ def findSnakeHead(canvas):
     canvas.data["headRow"] = headRow
     canvas.data["headCol"] = headCol
 
-def placeFood(canvas):
-    snakeBoard = canvas.data["snakeBoard"]
-    rows = len(snakeBoard)
-    cols = len(snakeBoard[0])
-    while True:
-        row = random.randint(0,rows-1)
-        col = random.randint(0,cols-1)
-        if (snakeBoard[row][col] == 0):
-            break
-    snakeBoard[row][col] = -1
-
 def printInstructions():
     print "Snake!"
     print "Use the arrow keys to move the snake."
@@ -170,6 +179,9 @@ def init(canvas):
     loadSnakeBoard(canvas)
     canvas.data["inDebugMode"] = False
     canvas.data["isGameOver"] = False
+    canvas.data["snakeDrow"] = 0
+    canvas.data["snakeDcol"] = -1 # start moving left
+    canvas.data["ignoreNextTimerEvent"] = False
     redrawAll(canvas)
 
 ########### copy-paste below here ###########
@@ -177,12 +189,25 @@ def init(canvas):
 def run():
     # create the root and the canvas
     root = Tk()
-    canvas = Canvas(root, width=310, height=310)
+    rows = 25
+    cols = 25
+    margin = 5
+    cellSize = 20
+    canvasWidth = 2*margin + cols*cellSize
+    canvasHeight = 2*margin + rows*cellSize
+    canvas = Canvas(root, width=canvasWidth, height=canvasHeight)
     canvas.pack()
+    root.resizable(width=0, height=0)
     # Store canvas in root and in canvas itself for callbacks
     root.canvas = canvas.canvas = canvas
     # Set up canvas data and call init
     canvas.data = { }
+    canvas.data["margin"] = margin
+    canvas.data["cellSize"] = cellSize
+    canvas.data["canvasWidth"] = canvasWidth
+    canvas.data["canvasHeight"] = canvasHeight
+    canvas.data["rows"] = rows
+    canvas.data["cols"] = cols
     init(canvas)
     # set up events
     root.bind("<Button-1>", mousePressed)
