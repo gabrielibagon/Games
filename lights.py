@@ -8,8 +8,14 @@ def mousePressed(event):
 
 def keyPressed(event):
 	canvas = event.widget.canvas
-	newFallingPiece(canvas)
-	redrawAll(canvas)
+	if (event.char == "q"):
+		close_window(canvas)
+	if (event.char == " "):	
+		changePattern(canvas)
+
+def close_window(canvas):
+	root = canvas.data["root"]
+	root.destroy()
 
 def timerFired(canvas):
 	ignoreThisTimerEvent = canvas.data["ignoreNextTimerEvent"]
@@ -23,7 +29,7 @@ def timerFired(canvas):
 			redrawAll(canvas)
 	# whether or not game is over, call next timerFired
 	# (or we'll never call timerFired again!)
-	delay = 150 # milliseconds
+	delay = 10 # milliseconds
 	canvas.after(delay, timerFired, canvas) # pause, then call timerFired again
 
 def redrawAll(canvas):
@@ -54,11 +60,8 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 	canvas.create_rectangle(left, top, right, bottom, fill="black")
 	if (color is not None):
 		# draw part of the tetris body
-		print left
-		print top
-		print right
-		print bottom
-		canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
+
+		canvas.create_rectangle(left, top, right, bottom, fill=color)
 	elif (tetrisBoard[row][col] < 0):
 		# draw food
 		canvas.create_rectangle(left, top, right, bottom, fill="green")
@@ -90,8 +93,8 @@ def movePiece(canvas, drow, dcol):
 
 def newFallingPiece(canvas):
 	pieceNumber = random.randrange(0,7)
-	canvas.data["fallingPiece"] = canvas.data["tetrisPieces"][pieceNumber]
-	canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][pieceNumber]
+	# canvas.data["fallingPiece"] = canvas.data["tetrisPieces"][pieceNumber]
+	# canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][pieceNumber]
 	# row = canvas.data["tetrisDrow"] = 0
 	# col = canvas.data["tetrisDcol"] = -1 # start moving left
 	# # fallingPieceRow = 0
@@ -99,15 +102,16 @@ def newFallingPiece(canvas):
 	drawFallingPiece(canvas)
 
 def drawFallingPiece(canvas):
-	fallingPiece = canvas.data["fallingPiece"]
-	fallingPieceColor = canvas.data["fallingPieceColor"]
 	tetrisBoard = canvas.data["tetrisBoard"]
-	for row in fallingPiece:
-		rowInt = 0
-		for column in row:
-			if True:
-				drawTetrisCell(canvas, tetrisBoard,rowInt,column, fallingPieceColor)
-		rowInt = rowInt+1
+	for row in range(0,200):
+		if True:
+			color1 = random.randrange(0,9)
+			color2 = random.randrange(0,9)
+			color3 = random.randrange(0,9)
+			color = str(color1) + str(color2) + str(color3)
+			r = lambda: random.randint(0,255)
+			color = '#%02X%02X%02X' % (r(),r(),r())
+			drawTetrisCell(canvas, tetrisBoard,row*color1,row, color)
 
 
 def printInstructions():
@@ -120,67 +124,28 @@ def printInstructions():
 def init(canvas):
 	printInstructions()
 	loadTetrisBoard(canvas)
-
-	iPiece = [
-		[True, True, True, True]
-	]
-
-	jPiece = [
-		[True, False, False ],
-		[True, True, True]
-	]
-
-	lPiece = [
-		[False, False, True],
-		[True, True, True]
-	]
-
-	oPiece = [
-		[True, True],
-		[True, True]
-	]
-
-	sPiece = [
-		[False, True, True],
-		[True, True, False]
-	]
-
-	tPiece = [
-		[False, True, False],
-		[True, True, True]
-	]
-
-	zPiece = [
-		[True, True, False],
-		[False, True, True]
-	]
-
-	tetrisPieces = [iPiece, jPiece, lPiece, oPiece, sPiece, tPiece, zPiece]
-	tetrisPieceColors = [ "red", "yellow", "magenta", "pink", "cyan", "green", "orange" ]
-	canvas.data["tetrisPieces"] = tetrisPieces
-	canvas.data["tetrisPieceColors"] = tetrisPieceColors
 	canvas.data["isGameOver"] = False
 	canvas.data["ignoreNextTimerEvent"] = False
 	canvas.data["tetrisDrow"] = 0
 	canvas.data["tetrisDcol"] = -1 # start moving left
 	pieceNumber = random.randrange(0,7)
-	canvas.data["fallingPiece"] = tetrisPieces[pieceNumber]
-	canvas.data["fallingPieceColor"] = tetrisPieceColors[pieceNumber]
 	# canvas.data["fallingPieceColor"] =
 
 def run():
 	root = Tk()
-	rows = 30
-	cols = 15
-	cellSize = 25
-	margin = 5
+	rows = 100
+	cols = 100
+	cellSize = 10
+	margin = 0
 	canvasWidth = 2*margin + cols*cellSize
 	canvasHeight = 2*margin + rows*cellSize
 	canvas = Canvas(root, width=canvasWidth, height=canvasHeight)
 	canvas.pack()
 	root.resizable(width=0, height=0)
+	root.attributes('-fullscreen', True)
 	root.canvas = canvas.canvas = canvas
 	canvas.data = { }
+	canvas.data["root"] = root
 	canvas.data["margin"] = margin
 	canvas.data["cellSize"] = cellSize
 	canvas.data["canvasWidth"] = canvasWidth
@@ -192,7 +157,7 @@ def run():
 
 	root.bind("<Button-1>", mousePressed)
 	root.bind("<Key>", keyPressed)
-	# timerFired(canvas)
+	timerFired(canvas)
 	# and launch the app
 	root.mainloop()
 
