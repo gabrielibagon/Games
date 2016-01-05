@@ -48,6 +48,7 @@ def drawTetrisBoard(canvas):
 			drawTetrisCell(canvas, tetrisBoard, row, col, None)
 
 def drawTetrisCell(canvas, tetrisBoard, row, col, color):
+
 	margin = canvas.data["margin"]
 	cellSize = canvas.data["cellSize"]
 	left = margin + col * cellSize
@@ -59,15 +60,13 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 	middle = (len(tetrisBoard[0])*cellSize + 5) / 2
 
 	#this is to fill the background of the board (black)
-	canvas.create_rectangle(left, top, right, bottom, fill="black")
-	
+	if (color is None):
+		canvas.create_rectangle(left, top, right, bottom, fill="black")
 	#drawing the tetris pieces
-	if (color is not None):
+	else:
 		#starting position for red piece
-		if (color is "red" or "cyan" or "green" or "orange"):
+		if (color is not "pink"):
 			print (color + " PIECE")
-			# print ("row ", row)
-			# print ("col", col)
 			left = (middle - 2*cellSize) + cellSize*col
 			right = (middle - 2*cellSize) + cellSize*(col+1)
 			top = margin + cellSize*row
@@ -78,7 +77,15 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 			# print ("top ", top)
 			# print ("bottom ", bottom)
 			canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
-		if (color is "pink"):
+		else:
+			print (color + " PIECE")
+			# print ("row ", row)
+			# print ("col", col)
+			# print ("middle", middle)
+			# print ("left ",left)
+			# print ("right ",right)
+			# print ("top ", top)
+			# print ("bottom ", bottom)
 			left = (middle - cellSize) + cellSize*col
 			right = (middle - cellSize) + cellSize*(col+1)
  			top = margin + cellSize*row
@@ -123,12 +130,19 @@ def drawFallingPiece(canvas):
 	fallingPiece = canvas.data["fallingPiece"]
 	fallingPieceColor = canvas.data["fallingPieceColor"]
 	tetrisBoard = canvas.data["tetrisBoard"]
+
+	print ("fallingPiece ", fallingPieceColor)
+	#clear the top (temporary?)
+	for row in range(0,2):
+		for col in range (0,4):
+			print ("this should appear 8 times every click")
+			drawTetrisCell(canvas, tetrisBoard,row,col, "black")
+
 	#to keep track of which square of the piece we're drawing
 	rowInt = 0
 	for row in fallingPiece:
 		colInt = 0
 		for column in row:
-			print ("column bool ", column)
 			if (column is True):
 				#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
 				drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, fallingPieceColor)
