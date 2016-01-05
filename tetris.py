@@ -11,6 +11,7 @@ def keyPressed(event):
 	newFallingPiece(canvas)
 	redrawAll(canvas)
 
+
 def timerFired(canvas):
 	ignoreThisTimerEvent = canvas.data["ignoreNextTimerEvent"]
 	canvas.data["ignoreNextTimerEvent"] = False
@@ -65,17 +66,17 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 		#starting position for red piece
 		if (color is "red" or "cyan" or "green" or "orange"):
 			print (color + " PIECE")
-			print ("row ", row)
-			print ("col", col)
+			# print ("row ", row)
+			# print ("col", col)
 			left = (middle - 2*cellSize) + cellSize*col
 			right = (middle - 2*cellSize) + cellSize*(col+1)
 			top = margin + cellSize*row
 			bottom = margin + cellSize*(row+1)
-			print ("middle", middle)
-			print ("left ",left)
-			print ("right ",right)
-			print ("top ", top)
-			print ("bottom ", bottom)
+			# print ("middle", middle)
+			# print ("left ",left)
+			# print ("right ",right)
+			# print ("top ", top)
+			# print ("bottom ", bottom)
 			canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
 		if (color is "pink"):
 			left = (middle - cellSize) + cellSize*col
@@ -128,7 +129,7 @@ def drawFallingPiece(canvas):
 		colInt = 0
 		for column in row:
 			print ("column bool ", column)
-			if True:
+			if (column is True):
 				#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
 				drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, fallingPieceColor)
 			colInt += 1
