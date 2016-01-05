@@ -8,13 +8,15 @@ def mousePressed(event):
 
 def keyPressed(event):
 	canvas = event.widget.canvas
+	print (event.keysym)
 	if (event.keysym == "Down"):
-		moveFallingPiece(canvas, +1, 0)
+		moveFallingPiece(canvas, -1, 0)
 	elif (event.keysym == "Left"):
-		moveFallingPiece(canvas, 0,1)
+		moveFallingPiece(canvas, 0,+1)
 	elif (event.keysym == "Right"):
 		moveFallingPiece(canvas, 0,-1)
-	redrawAll(canvas)
+	else:
+		redrawAll(canvas)
 
 
 def timerFired(canvas):
@@ -74,11 +76,11 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 		locationRow = canvas.data["fallingPieceLocationRow"]
 		locationCol = canvas.data["fallingPieceLocationCol"]
 		if (color is not "pink"):
-			print (color + " PIECE")
-			left = (middle - 2*cellSize) + cellSize*col + cellSize*locationRow
-			right = (middle - 2*cellSize) + cellSize*(col+1) + cellSize*locationRow
-			top = margin + cellSize*row + cellSize*locationCol
-			bottom = margin + cellSize*(row+1) + cellSize*locationCol
+			# print (color + " PIECE")
+			left = (middle - 2*cellSize) + cellSize*col + cellSize*locationCol
+			right = (middle - 2*cellSize) + cellSize*(col+1) + cellSize*locationCol
+			top = margin + cellSize*row + cellSize*locationRow
+			bottom = margin + cellSize*(row+1) + cellSize*locationRow
 			# print ("middle", middle)
 			# print ("left ",left)
 			# print ("right ",right)
@@ -87,10 +89,10 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 			canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
 		#drawing the pink piece
 		else:
-			print (color + " PIECE")
-			left = (middle - cellSize) + cellSize*col + cellSize*locationRow
-			right = (middle - cellSize) + cellSize*(col+1) + cellSize*locationRow
- 			top = margin + cellSize*row + cellSize*locationCol
+			# print (color + " PIECE")
+			left = (middle - cellSize) + cellSize*col + cellSize*locationCol
+			right = (middle - cellSize) + cellSize*(col+1) + cellSize*locationCol
+ 			top = margin + cellSize*row + cellSize*locationRow
 			bottom = margin + cellSize*(row+1) + cellSize*locationRow
 			canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
 
@@ -103,11 +105,48 @@ def loadTetrisBoard(canvas):
 	canvas.data["tetrisBoard"] = tetrisBoard
 
 def moveFallingPiece(canvas, drow, dcol):
+		fallingPiece = canvas.data["fallingPiece"]
+		fallingPieceColor = canvas.data["fallingPieceColor"]
+		tetrisBoard = canvas.data["tetrisBoard"]
 		fallingPieceLocationRow = canvas.data["fallingPieceLocationRow"]
-		canvas.data["fallingPieceLocationRow"] = fallingPieceLocationRow - drow
 		fallingPieceLocationCol = canvas.data["fallingPieceLocationCol"]
+
+		# erases the previous location of the piece
+		if (fallingPieceColor is not "pink"):
+			rowInt = 0
+			for row in fallingPiece:
+				colInt = 0
+				for column in row:
+					if (column is True):
+						#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
+						print("row ", rowInt)
+						print("col ", colInt)
+						drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, "black")
+					colInt += 1
+				rowInt += 1
+
+		#special case for pink square
+		else:
+			rowInt = 0
+			for row in fallingPiece:
+				colInt = 1
+				for column in row:
+					if (column is True):
+						#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
+						print("row ", rowInt)
+						print("col ", colInt)
+						drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, "black")
+					colInt += 1
+				rowInt += 1
+		
+
+		#generates and writes the new location
+		canvas.data["fallingPieceLocationRow"] = fallingPieceLocationRow - drow
 		canvas.data["fallingPieceLocationCol"] = fallingPieceLocationCol - dcol
+		print (fallingPieceLocationRow)
 		drawFallingPiece(canvas)
+
+
 		# headRow = canvas.data["headRow"]
 		# headCol = canvas.data["headCol"]
 		# newHeadRow = headRow + drow
@@ -118,7 +157,10 @@ def moveFallingPiece(canvas, drow, dcol):
 		# removeTail(canvas)
 
 def newFallingPiece(canvas):
+
+	#picks a random falling piece and sets its location to the top
 	pieceNumber = random.randrange(0,7)
+	tetrisBoard = canvas.data["tetrisBoard"]
 	canvas.data["fallingPiece"] = canvas.data["tetrisPieces"][pieceNumber]
 	canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][pieceNumber]
 	canvas.data["fallingPieceLocationRow"] = 0
@@ -127,21 +169,19 @@ def newFallingPiece(canvas):
 	# col = canvas.data["tetrisDcol"] = -1 # start moving left
 	# # fallingPieceRow = 0
 	# # fallingPieceCol = col/2
+
+	# this clears the top for a falling piece (clear a 2x4 area on the top)
+	for row in range(0,2):
+		for col in range (0,4):
+			drawTetrisCell(canvas, tetrisBoard,row,col, "black")
+
 	drawFallingPiece(canvas)
 
 def drawFallingPiece(canvas):
 	fallingPiece = canvas.data["fallingPiece"]
 	fallingPieceColor = canvas.data["fallingPieceColor"]
 	tetrisBoard = canvas.data["tetrisBoard"]
-	print ("fallingPiece ", fallingPieceColor)
-	#clear the piece -> this might need to be specified to the shape of the piece...
-	#i'm imagining a bug that causes and issue when other pieces are in this 2x4 buffer
-	for row in range(0,2):
-		for col in range (0,4):
-			print ("this should appear 8 times every click")
-			drawTetrisCell(canvas, tetrisBoard,row,col, "black")
-
-	#to keep track of which square of the piece we're drawing
+	#iterating through each square of the piece we're drawing
 	rowInt = 0
 	for row in fallingPiece:
 		colInt = 0
@@ -207,6 +247,8 @@ def init(canvas):
 
 	tetrisPieces = [iPiece, jPiece, lPiece, oPiece, sPiece, tPiece, zPiece]
 	tetrisPieceColors = [ "red", "yellow", "magenta", "pink", "cyan", "green", "orange" ]
+	canvas.data["fallingPieceLocationRow"] = 0
+	canvas.data["fallingPieceLocationCol"] = 0
 	canvas.data["tetrisPieces"] = tetrisPieces
 	canvas.data["tetrisPieceColors"] = tetrisPieceColors
 	canvas.data["isGameOver"] = False
