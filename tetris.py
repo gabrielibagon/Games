@@ -31,10 +31,12 @@ def redrawAll(canvas):
 	drawTetrisBoard(canvas)
 	drawFallingPiece(canvas)
 	newFallingPiece(canvas)
-	if (canvas.data["isGameOver"] == True):
-			cx = canvas.data["canvasWidth"]/2
-			cy = canvas.data["canvasHeight"]/2
-			canvas.create_text(cx, cy, text="Game Over!", fill="white", font=("Helvetica", 32, "bold"))
+
+	#for when the game is over
+	# if (canvas.data["isGameOver"] == True):
+	# 		cx = canvas.data["canvasWidth"]/2
+	# 		cy = canvas.data["canvasHeight"]/2
+	# 		canvas.create_text(cx, cy, text="Game Over!", fill="white", font=("Helvetica", 32, "bold"))
 
 def drawTetrisBoard(canvas):
 	tetrisBoard = canvas.data["tetrisBoard"]
@@ -51,18 +53,36 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 	right = left + cellSize
 	top = margin + row * cellSize
 	bottom = top + cellSize
+
+	#this is the pixel of the middle fo the board
+	middle = (len(tetrisBoard[0])*cellSize + 5) / 2
+
+	#this is to fill the background of the board (black)
 	canvas.create_rectangle(left, top, right, bottom, fill="black")
+	
+	#drawing the tetris pieces
 	if (color is not None):
-		# draw part of the tetris body
-		print left
-		print top
-		print right
-		print bottom
-		canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
-	elif (tetrisBoard[row][col] < 0):
-		# draw food
-		canvas.create_rectangle(left, top, right, bottom, fill="green")
-	# for debugging, draw the number in the cell
+		#starting position for red piece
+		if (color is "red" or "cyan" or "green" or "orange"):
+			print (color + " PIECE")
+			print ("row ", row)
+			print ("col", col)
+			left = (middle - 2*cellSize) + cellSize*col
+			right = (middle - 2*cellSize) + cellSize*(col+1)
+			top = margin + cellSize*row
+			bottom = margin + cellSize*(row+1)
+			print ("middle", middle)
+			print ("left ",left)
+			print ("right ",right)
+			print ("top ", top)
+			print ("bottom ", bottom)
+			canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
+		if (color is "pink"):
+			left = (middle - cellSize) + cellSize*col
+			right = (middle - cellSize) + cellSize*(col+1)
+ 			top = margin + cellSize*row
+			bottom = margin + cellSize*(row+1)
+			canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
 
 
 def loadTetrisBoard(canvas):
@@ -102,12 +122,17 @@ def drawFallingPiece(canvas):
 	fallingPiece = canvas.data["fallingPiece"]
 	fallingPieceColor = canvas.data["fallingPieceColor"]
 	tetrisBoard = canvas.data["tetrisBoard"]
+	#to keep track of which square of the piece we're drawing
+	rowInt = 0
 	for row in fallingPiece:
-		rowInt = 0
+		colInt = 0
 		for column in row:
+			print ("column bool ", column)
 			if True:
-				drawTetrisCell(canvas, tetrisBoard,rowInt,column, fallingPieceColor)
-		rowInt = rowInt+1
+				#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
+				drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, fallingPieceColor)
+			colInt += 1
+		rowInt += 1
 
 
 def printInstructions():
@@ -121,35 +146,42 @@ def init(canvas):
 	printInstructions()
 	loadTetrisBoard(canvas)
 
+	#red
 	iPiece = [
 		[True, True, True, True]
 	]
 
+	#yellow
 	jPiece = [
-		[True, False, False ],
+		[True, False, False],
 		[True, True, True]
 	]
 
+	#magenta
 	lPiece = [
 		[False, False, True],
 		[True, True, True]
 	]
 
+	#pink
 	oPiece = [
 		[True, True],
 		[True, True]
 	]
 
+	#cyan
 	sPiece = [
 		[False, True, True],
 		[True, True, False]
 	]
 
+	#green
 	tPiece = [
 		[False, True, False],
 		[True, True, True]
 	]
 
+	#orange
 	zPiece = [
 		[True, True, False],
 		[False, True, True]

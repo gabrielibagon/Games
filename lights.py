@@ -103,7 +103,9 @@ def newFallingPiece(canvas):
 
 def drawFallingPiece(canvas):
 	tetrisBoard = canvas.data["tetrisBoard"]
-	for row in range(0,200):
+	for row in range(0,100):
+		count = 0
+		count+1
 		if True:
 			color1 = random.randrange(0,9)
 			color2 = random.randrange(0,9)
@@ -111,7 +113,8 @@ def drawFallingPiece(canvas):
 			color = str(color1) + str(color2) + str(color3)
 			r = lambda: random.randint(0,255)
 			color = '#%02X%02X%02X' % (r(),r(),r())
-			drawTetrisCell(canvas, tetrisBoard,row*color1,row, color)
+			drawTetrisCell(canvas, tetrisBoard,row,count, color)
+
 
 
 def printInstructions():
