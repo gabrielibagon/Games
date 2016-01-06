@@ -15,7 +15,7 @@ def keyPressed(event):
 		moveFallingPiece(canvas, 0,+1)
 	elif (event.keysym == "Right"):
 		moveFallingPiece(canvas, 0,-1)
-	elif (event.keysym == "space"):
+	elif (event.keysym == "Up"):
 		print('dsgs')
 		rotatePiece(canvas)
 	else:
@@ -28,13 +28,10 @@ def timerFired(canvas):
 	if ((canvas.data["isGameOver"] == False) and
 			(ignoreThisTimerEvent == False)):
 			# only process timerFired if game is not over
-			drow = canvas.data["tetrisDrow"]
-			dcol = canvas.data["tetrisDcol"]
-			moveFallingPiece(canvas, drow, dcol)
-			redrawAll(canvas)
+			moveFallingPiece(canvas, -1, 0)
 	# whether or not game is over, call next timerFired
 	# (or we'll never call timerFired again!)
-	delay = 150 # milliseconds
+	delay = 250 # milliseconds
 	canvas.after(delay, timerFired, canvas) # pause, then call timerFired again
 
 def loadTetrisBoard(canvas):
@@ -330,7 +327,8 @@ def run():
 
 	root.bind("<Button-1>", mousePressed)
 	root.bind("<Key>", keyPressed)
-	# timerFired(canvas)
+	redrawAll(canvas)
+	timerFired(canvas)
 	# and launch the app
 	root.mainloop()
 
