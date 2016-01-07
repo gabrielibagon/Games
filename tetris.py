@@ -8,7 +8,6 @@ def mousePressed(event):
 
 def keyPressed(event):
 	canvas = event.widget.canvas
-	print (event.keysym)
 	if (event.keysym == "Down"):
 		moveFallingPiece(canvas, -1, 0)
 	elif (event.keysym == "Left"):
@@ -97,11 +96,6 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 		right = (middle - sym*cellSize) + cellSize*(col+1) + cellSize*locationCol
 		top = margin + cellSize*row + cellSize*locationRow
 		bottom = margin + cellSize*(row+1) + cellSize*locationRow
-		# print ("middle", middle)
-		# print ("left ",left)
-		# print ("right ",right)
-		# print ("top ", top)
-		# print ("bottom ", bottom) 
 		canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
 
 def moveFallingPiece(canvas, drow, dcol):
@@ -190,14 +184,16 @@ def checkLegalMove(canvas,drow,dcol):
 				bottom = margin + cellSize*(rowInt+1) + cellSize*row
 				#edges
 				if (left<margin or right>(margin+cellSize*len(tetrisBoard[0])) or 
-					bottom>(margin+cellSize*len(tetrisBoard)) or ([left, right, top, bottom] in canvas.data["placedPieces"])):
+					bottom>(margin+cellSize*len(tetrisBoard))):
 					return False
+				for piece in canvas.data["placedPieces"]:
+					if ([left, right, top, bottom] == piece[0:4]):
+						return False
 				# print ("middle", middle)
 				# print ("left ",left)
 				# print ("right ",right)
 				# print ("top ", top)
 				# print ("bottom ", bottom) 
-				print("test")
 				# print(canvas.itemcget(canvas.find_enclosed(left, top, right, bottom), "fill"))
 			colInt += 1
 		rowInt += 1
@@ -236,15 +232,6 @@ def newFallingPiece(canvas):
 			colInt += 1
 		rowInt +=1
 
-
-	# middle = (len(tetrisBoard[0])*cellSize + 5) / 2
-	# left = (middle - 2*cellSize)
-	# right = (middle + 2*cellSize)
-	# top = margin
-	# bottom = margin + cellSize*2
-	# if ([left,right,top,bottom] in canvas.data["placedPieces"]):
-	# 	canvas.data["isgameOver" == True]
-	# this clears the top for a falling piece (clear a 2x4 area on the top)	
 	for row in range(0,2):
 		for col in range (0,4):
 			drawTetrisCell(canvas, tetrisBoard,row,col, "black")
@@ -290,11 +277,58 @@ def placeFallingPiece(canvas):
 				right = (middle - sym*cellSize) + cellSize*(colInt+1) + cellSize*fallingPieceLocationCol
 				top = margin + cellSize*rowInt + cellSize*fallingPieceLocationRow
 				bottom = margin + cellSize*(rowInt+1) + cellSize*fallingPieceLocationRow
-				canvas.data["placedPieces"].append([left, right, top, bottom])
-				print("placed after", canvas.data["placedPieces"])
+				canvas.data["placedPieces"].append([left, right, top, bottom, fallingPieceColor])
+				checkRow(canvas,top)
 			colInt += 1
 		rowInt += 1
 	print("PIECE PLACED")
+
+def checkRow(canvas,top):
+	margin = canvas.data["margin"]
+	cellSize = canvas.data["cellSize"]
+	# print("current coords:")
+	# for coord in canvas.data["placedPieces"]:
+	# 	print coord
+	colFull=0
+	for i in range(0,canvas.data["cols"]-1):
+		# print ("checking column ", i)
+		# print([margin+(i*cellSize)+22, margin+((i+1)*cellSize)+22, top, top+cellSize])
+		for piece in canvas.data["placedPieces"]:
+			if ([margin+(i*cellSize)+22, margin+((i+1)*cellSize)+22, top, top+cellSize] == piece[0:4]):
+				colFull+=1
+				# break
+	if (colFull==canvas.data["cols"]-1):
+		removeFullRow(canvas,top)
+
+def removeFullRow(canvas, top):
+	print("ROW TO BE REMOVED:", top)
+	margin = canvas.data["margin"]
+	cellSize = canvas.data["cellSize"]
+	#erase that row!
+	# for i in range(canvas.data["cols"]):
+	# 	canvas.create_rectangle(margin+(i*cellSize), top, margin+((i+1)*cellSize), top+cellSize, fill="black")
+	for piece in canvas.data["placedPieces"]:
+		print("top ", piece[2])
+		if (piece[2]== top):
+			print("top remove", piece[2])
+			canvas.create_rectangle(piece[0],piece[2],piece[1],piece[3], fill="black")
+			canvas.data["placedPieces"].remove(piece)
+	tempPiecesList = []
+	# for piece in canvas.data["placedPieces"]:
+	# 	print("top ", top)
+	# 	print("piece bottom,", piece[3])
+	# 	if (piece[3] <= top):
+	# 		print("piece to add!", piece)
+	# 		#left,right,top, bottom
+	# 		#left,top, right, bottom
+	# 		canvas.create_rectangle(piece[0],piece[2],piece[1],piece[3], fill=piece[4])
+	# 		canvas.create_rectangle(piece[0],piece[2]+cellSize,piece[1],piece[3]+cellSize, fill=piece[4])
+	# 		canvas.data["placedPieces"].remove(piece)
+	# 		tempPiecesList.append([piece[0],piece[1],piece[2]+cellSize,piece[3]+cellSize, piece[4]])
+	# for piece in tempPiecesList:
+	# 	canvas.data["placedPieces"].append(piece)
+
+
 
 def printInstructions():
 	print "Tetris!"
