@@ -4,7 +4,7 @@ import random
 
 def mousePressed(event):
 	canvas = event.widget.canvas
-	redrawAll(canvas)
+	# redrawAll(canvas)
 
 def keyPressed(event):
 	canvas = event.widget.canvas
@@ -17,21 +17,23 @@ def keyPressed(event):
 		moveFallingPiece(canvas, 0,-1)
 	elif (event.keysym == "Up"):
 		rotatePiece(canvas)
-	# else:
-	# 	redrawAll(canvas)
-
+	elif (event.keysym == "r"):
+		init(canvas)
+		redrawAll(canvas)
 
 def timerFired(canvas):
-	ignoreThisTimerEvent = canvas.data["ignoreNextTimerEvent"]
-	canvas.data["ignoreNextTimerEvent"] = False
-	if ((canvas.data["isGameOver"] == False) and
-			(ignoreThisTimerEvent == False)):
+	if (canvas.data["isGameOver"] == False):
 			# only process timerFired if game is not over
 			if (moveFallingPiece(canvas, -1, 0) == False or []):
 				placeFallingPiece(canvas)
-				newFallingPiece(canvas)
+				if (newFallingPiece(canvas) == False):
+					canvas.data["isGameOver"] = True
 	else:
-				
+		print ("GAME OVER SEQUENCE")
+		cx = canvas.data["canvasWidth"]/2
+		cy = canvas.data["canvasHeight"]/2
+		canvas.create_text(cx, cy, text="Game Over!", fill="white", font=("Helvetica", 32, "bold"))
+		return
 	# whether or not game is over, call next timerFired
 	# (or we'll never call timerFired again!)
 	delay = 250 # milliseconds
@@ -211,6 +213,29 @@ def newFallingPiece(canvas):
 	canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][pieceNumber]
 	canvas.data["fallingPieceLocationRow"] = 0
 	canvas.data["fallingPieceLocationCol"] = 0
+	middle = (len(tetrisBoard[0])*cellSize + 5) / 2
+
+	rowInt=0
+	for rowIter in canvas.data["fallingPiece"]:
+		colInt = 0
+		for column in rowIter:
+			if (column is True):
+				if (canvas.data["fallingPieceColor"] is "pink"):
+					sym = 1
+				else:
+					sym = 2
+				#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
+				left = (middle - sym*cellSize) + cellSize*colInt
+				right = (middle - sym*cellSize) + cellSize*(colInt+1)
+				top = margin + cellSize*rowInt
+				bottom = margin + cellSize*(rowInt+1)
+				if ([left,right,top,bottom] in canvas.data["placedPieces"]):
+					print ("TOP REACHED")
+					return False
+
+			colInt += 1
+		rowInt +=1
+
 
 	# middle = (len(tetrisBoard[0])*cellSize + 5) / 2
 	# left = (middle - 2*cellSize)
@@ -223,6 +248,7 @@ def newFallingPiece(canvas):
 	for row in range(0,2):
 		for col in range (0,4):
 			drawTetrisCell(canvas, tetrisBoard,row,col, "black")
+	
 	drawFallingPiece(canvas)
 
 def drawFallingPiece(canvas):
@@ -329,7 +355,6 @@ def init(canvas):
 	canvas.data["tetrisPieces"] = tetrisPieces
 	canvas.data["tetrisPieceColors"] = tetrisPieceColors
 	canvas.data["isGameOver"] = False
-	canvas.data["ignoreNextTimerEvent"] = False
 	canvas.data["tetrisDrow"] = 0
 	canvas.data["tetrisDcol"] = -1 # start moving left
 	pieceNumber = random.randrange(0,7)
