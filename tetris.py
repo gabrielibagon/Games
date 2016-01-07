@@ -16,10 +16,9 @@ def keyPressed(event):
 	elif (event.keysym == "Right"):
 		moveFallingPiece(canvas, 0,-1)
 	elif (event.keysym == "Up"):
-		print('dsgs')
 		rotatePiece(canvas)
-	else:
-		redrawAll(canvas)
+	# else:
+	# 	redrawAll(canvas)
 
 
 def timerFired(canvas):
@@ -28,7 +27,11 @@ def timerFired(canvas):
 	if ((canvas.data["isGameOver"] == False) and
 			(ignoreThisTimerEvent == False)):
 			# only process timerFired if game is not over
-			moveFallingPiece(canvas, -1, 0)
+			if (moveFallingPiece(canvas, -1, 0) == False or []):
+				placeFallingPiece(canvas)
+				newFallingPiece(canvas)
+	else:
+				
 	# whether or not game is over, call next timerFired
 	# (or we'll never call timerFired again!)
 	delay = 250 # milliseconds
@@ -97,7 +100,7 @@ def drawTetrisCell(canvas, tetrisBoard, row, col, color):
 		# print ("right ",right)
 		# print ("top ", top)
 		# print ("bottom ", bottom) 
-		piece = canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
+		canvas.create_rectangle(left, top, right, bottom, fill= "%s" % color)
 
 def moveFallingPiece(canvas, drow, dcol):
 	fallingPiece = canvas.data["fallingPiece"]
@@ -123,6 +126,9 @@ def moveFallingPiece(canvas, drow, dcol):
 		canvas.data["fallingPieceLocationRow"] = fallingPieceLocationRow - drow
 		canvas.data["fallingPieceLocationCol"] = fallingPieceLocationCol - dcol
 		drawFallingPiece(canvas)
+		return True
+	else:
+		return False
 
 def rotatePiece(canvas):
 	fallingPiece = canvas.data["fallingPiece"]
@@ -132,7 +138,6 @@ def rotatePiece(canvas):
 	fallingPieceLocationCol = canvas.data["fallingPieceLocationCol"]
 	canvas.data["fallingPiece"] = zip(*fallingPiece)[::-1] #rotates the piece
 	if (checkLegalMove(canvas,0,0)):
-		print("3254635341298830657412387t652368")
 		#ERASING PREVIOUS SQUARE
 		# erases the previous location of the piece
 		rowInt = 0
@@ -143,8 +148,6 @@ def rotatePiece(canvas):
 			for column in row:
 				if (column is True):
 					#the function parameters->drawTetrisCell(canvas, tetrisBoard, row, col, color):
-					print("rowz ", rowInt)
-					print("col ", colInt)
 					drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, "black")
 				colInt += 1
 			rowInt += 1
@@ -164,7 +167,7 @@ def checkLegalMove(canvas,drow,dcol):
 	tetrisBoard = canvas.data["tetrisBoard"]
 	row = canvas.data["fallingPieceLocationRow"] - drow
 	col = canvas.data["fallingPieceLocationCol"] - dcol
-
+	placedPieces = canvas.data["placedPieces"]
 	margin = canvas.data["margin"]
 	cellSize = canvas.data["cellSize"]
 	middle = (len(tetrisBoard[0])*cellSize + 5) / 2
@@ -185,16 +188,15 @@ def checkLegalMove(canvas,drow,dcol):
 				bottom = margin + cellSize*(rowInt+1) + cellSize*row
 				#edges
 				if (left<margin or right>(margin+cellSize*len(tetrisBoard[0])) or 
-					bottom>(margin+cellSize*len(tetrisBoard))):
+					bottom>(margin+cellSize*len(tetrisBoard)) or ([left, right, top, bottom] in canvas.data["placedPieces"])):
 					return False
-				print (canvas.find_enclosed(left, top, right, bottom))
-				print ("middle", middle)
-				print ("left ",left)
-				print ("right ",right)
-				print ("top ", top)
-				print ("bottom ", bottom) 
+				# print ("middle", middle)
+				# print ("left ",left)
+				# print ("right ",right)
+				# print ("top ", top)
+				# print ("bottom ", bottom) 
 				print("test")
-				print(canvas.itemcget(canvas.find_enclosed(left, top, right, bottom), "fill"))
+				# print(canvas.itemcget(canvas.find_enclosed(left, top, right, bottom), "fill"))
 			colInt += 1
 		rowInt += 1
 	return True
@@ -202,17 +204,22 @@ def checkLegalMove(canvas,drow,dcol):
 def newFallingPiece(canvas):
 	#picks a random falling piece and sets its location to the top
 	pieceNumber = random.randrange(0,7)
+	margin = canvas.data["margin"]
+	cellSize = canvas.data["cellSize"]
 	tetrisBoard = canvas.data["tetrisBoard"]
 	canvas.data["fallingPiece"] = canvas.data["tetrisPieces"][pieceNumber]
 	canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][pieceNumber]
 	canvas.data["fallingPieceLocationRow"] = 0
 	canvas.data["fallingPieceLocationCol"] = 0
-	# row = canvas.data["tetrisDrow"] = 0
-	# col = canvas.data["tetrisDcol"] = -1 # start moving left
-	# # fallingPieceRow = 0
-	# # fallingPieceCol = col/2
 
-	# this clears the top for a falling piece (clear a 2x4 area on the top)
+	# middle = (len(tetrisBoard[0])*cellSize + 5) / 2
+	# left = (middle - 2*cellSize)
+	# right = (middle + 2*cellSize)
+	# top = margin
+	# bottom = margin + cellSize*2
+	# if ([left,right,top,bottom] in canvas.data["placedPieces"]):
+	# 	canvas.data["isgameOver" == True]
+	# this clears the top for a falling piece (clear a 2x4 area on the top)	
 	for row in range(0,2):
 		for col in range (0,4):
 			drawTetrisCell(canvas, tetrisBoard,row,col, "black")
@@ -228,12 +235,40 @@ def drawFallingPiece(canvas):
 		colInt = 0
 		for column in row:
 			if (column is True):
-				print("row ", rowInt)
-				print("col ", colInt)
+				# print("row ", rowInt)
+				# print("col ", colInt)
 				drawTetrisCell(canvas, tetrisBoard,rowInt,colInt, fallingPieceColor)
 			colInt += 1
 		rowInt += 1
 
+def placeFallingPiece(canvas):
+	tetrisBoard = canvas.data["tetrisBoard"]
+	fallingPiece = canvas.data["fallingPiece"]
+	fallingPieceColor = canvas.data["fallingPieceColor"]
+	fallingPieceLocationRow = canvas.data["fallingPieceLocationRow"]
+	fallingPieceLocationCol = canvas.data["fallingPieceLocationCol"]
+	margin = canvas.data["margin"]
+	cellSize = canvas.data["cellSize"]
+	#this is the pixel of the middle of the board
+	middle = (len(tetrisBoard[0])*cellSize + 5) / 2
+	rowInt = 0
+	for rowIter in fallingPiece:
+		colInt = 0
+		for column in rowIter:
+			if (column is True):
+				if (fallingPieceColor is "pink"):
+					sym = 1
+				else:
+					sym = 2
+				left = (middle - sym*cellSize) + cellSize*colInt + cellSize*fallingPieceLocationCol
+				right = (middle - sym*cellSize) + cellSize*(colInt+1) + cellSize*fallingPieceLocationCol
+				top = margin + cellSize*rowInt + cellSize*fallingPieceLocationRow
+				bottom = margin + cellSize*(rowInt+1) + cellSize*fallingPieceLocationRow
+				canvas.data["placedPieces"].append([left, right, top, bottom])
+				print("placed after", canvas.data["placedPieces"])
+			colInt += 1
+		rowInt += 1
+	print("PIECE PLACED")
 
 def printInstructions():
 	print "Tetris!"
@@ -300,7 +335,8 @@ def init(canvas):
 	pieceNumber = random.randrange(0,7)
 	canvas.data["fallingPiece"] = tetrisPieces[pieceNumber]
 	canvas.data["fallingPieceColor"] = tetrisPieceColors[pieceNumber]
-	# canvas.data["fallingPieceColor"] =
+	placedPieces = []
+	canvas.data["placedPieces"] = placedPieces
 
 def run():
 	root = Tk()
