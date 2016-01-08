@@ -205,8 +205,8 @@ def newFallingPiece(canvas):
 	margin = canvas.data["margin"]
 	cellSize = canvas.data["cellSize"]
 	tetrisBoard = canvas.data["tetrisBoard"]
-	canvas.data["fallingPiece"] = canvas.data["tetrisPieces"][2]
-	canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][2]
+	canvas.data["fallingPiece"] = canvas.data["tetrisPieces"][pieceNumber]
+	canvas.data["fallingPieceColor"] = canvas.data["tetrisPieceColors"][pieceNumber]
 	canvas.data["fallingPieceLocationRow"] = 0
 	canvas.data["fallingPieceLocationCol"] = 0
 	middle = (len(tetrisBoard[0])*cellSize + 5) / 2
@@ -283,8 +283,7 @@ def placeFallingPiece(canvas):
 				checkRow(canvas,top)
 			colInt += 1
 		rowInt += 1
-	for piece in canvas.data["placedPieces"]:
-				print ("piece coord ", piece)
+
 	print("PIECE PLACED")
 
 def checkRow(canvas,top):
@@ -313,34 +312,39 @@ def removeFullRow(canvas, top):
 	#erase that row!
 	# for i in range(canvas.data["cols"]):
 	# 	canvas.create_rectangle(margin+(i*cellSize), top, margin+((i+1)*cellSize), top+cellSize, fill="black")
-
+	for piece in canvas.data["placedPieces"]:
+		print ("piece coord ", piece)
 	i= 0
-	j = len(placedPieces)
 	while i < len(placedPieces):
 		if (placedPieces[i][2]==top):
 			canvas.create_rectangle(placedPieces[i][0],placedPieces[i][2],placedPieces[i][1],placedPieces[i][3], fill="black")
 			canvas.data["placedPieces"].remove(placedPieces[i])
-			i-=1
-		i+=1
+		else:
+			i+=1
 
 	tempPiecesList = []
-	i=0
-	while i < len(placedPieces):
+	i=len(placedPieces)-1
+	print ("lenght ", len(placedPieces))
+	while i >= 0:
 		# print("top ", top)
 		# print("piece bottom,", piece[3])
 		if (placedPieces[i][3] <= top):
+			print("piece to be moved: ", placedPieces[i])
 			#left,right,top, bottom
 			#left,top, right, bottom
 			canvas.create_rectangle(placedPieces[i][0],placedPieces[i][2],placedPieces[i][1],placedPieces[i][3], fill="black")
-			canvas.create_rectangle(placedPieces[i][0],placedPieces[i][2]+cellSize,placedPieces[i][1],placedPieces[i][3]+cellSize, fill=placedPieces[i][4])
-			tempPiecesList.append([placedPieces[i][0],placedPieces[i][1],placedPieces[i][2]+cellSize,placedPieces[i][3]+cellSize, placedPieces[i][4]])
+			canvas.create_rectangle(placedPieces[i][0],placedPieces[i][2]+cellSize,placedPieces[i][1],placedPieces[i][3]+cellSize, fill="White")
+			canvas.data["placedPieces"].append([placedPieces[i][0],placedPieces[i][1],placedPieces[i][2]+cellSize,placedPieces[i][3]+cellSize,placedPieces[i][4]])
 			canvas.data["placedPieces"].remove(placedPieces[i])
-			i-=1
-		i+=1
+		i-=1
+	print("tests235467534863251764832")
+
 
 	for piece in tempPiecesList:
 		canvas.data["placedPieces"].append(piece)
-
+	print("new length ", len(canvas.data["placedPieces"]))
+	for piece in canvas.data["placedPieces"]:
+		print ("piece coord after ", piece)
 
 
 def printInstructions():
