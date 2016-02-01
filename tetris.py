@@ -1,5 +1,6 @@
 from Tkinter import *
 import random
+import sys
 
 
 def mousePressed(event):
@@ -19,6 +20,8 @@ def keyPressed(event):
 	elif (event.keysym == "r"):
 		init(canvas)
 		redrawAll(canvas)
+	elif (event.keysym == "q"):
+		sys.exit()
 
 def timerFired(canvas):
 	if (canvas.data["isGameOver"] == False):
